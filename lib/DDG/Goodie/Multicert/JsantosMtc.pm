@@ -4,6 +4,7 @@ package DDG::Goodie::Multicert::JsantosMtc;
 # to instant answer development
 
 use DDG::Goodie;
+use Safe;
 
 # json stuff
 use LWP::Simple;                # From CPAN
@@ -43,17 +44,21 @@ code_url "https://github.com/duckduckgo/zeroclickinfo-goodies/blob/master/lib/DD
 attribution github => ["jsantos-mtc", "Friendly Name"], twitter => "norvarius";
 
 # Triggers
-triggers startend => "certificate";
+triggers query_lc => qr/([a-z]{2,10}\.[a-z]{2,3}) certificate/;
 
 # Handle statement
-handle remainder => sub {
-    return if $_;
+handle query => sub {
+    my $text_output = $1;
+    my $text_output2 = JSONResponse;
     
-    $_ =~/^[a-zA-Z0-9][a-zA-Z0-9-]{1,61}[a-zA-Z0-9]\.[a-zA-Z]{2,}$/g;
-    my $address = $1;
-    return if !$address;
-    
-    return JSONResponse;
+    my $html_output = "<table>".
+                      "<tr><td>Domain Name: </td><td>${text_output}</td></tr>".
+                      "<tr><td>Issuer DN: </td><td>${text_output2}</td></tr>".
+                      "</table>";
+                      
+    my $heading = "Multicert testing code";
+
+    return html => $html_output, heading => $heading;
 };
 
 1;
